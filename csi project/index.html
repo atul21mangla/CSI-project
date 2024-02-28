@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Conduction Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+
+        #createQuizPage, #takeQuizPage, #quizPage, #resultPage {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #createQuizPage input[type="text"] {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+        }
+
+        #createQuizPage select {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+        }
+
+        #createQuizPage button, #takeQuizPage button, #quizPage button, #resultPage button {
+            width: 100%;
+        }
+
+        #questions div {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="homepage">
+        <h1>Welcome to Quiz Conduction Website</h1>
+        <button onclick="createQuiz()">Create Quiz</button>
+        <button onclick="takeQuiz()">Take Quiz</button>
+    </div>
+
+    <div id="createQuizPage" style="display: none;">
+        <h2>Create Quiz</h2>
+        <input type="text" id="quizTitle" placeholder="Enter quiz title"><br><br>
+        <div id="questions">
+            <div id="question1">
+                <input type="text" class="question" placeholder="Enter question"><br>
+                <input type="text" class="option" placeholder="Option 1"><br>
+                <input type="text" class="option" placeholder="Option 2"><br>
+                <input type="text" class="option" placeholder="Option 3"><br>
+                <input type="text" class="option" placeholder="Option 4"><br>
+                Correct Answer: <select class="correctAnswer">
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                    <option value="4">Option 4</option>
+                </select><br><br>
+            </div>
+        </div>
+        <button onclick="addQuestion()">Add Question</button>
+        <button onclick="submitQuiz()">Submit Quiz</button>
+    </div>
+
+    <div id="takeQuizPage" style="display: none;">
+        <h2>Take Quiz</h2>
+        <input type="text" id="quizLink" placeholder="Enter quiz link"><br><br>
+        <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div id="quizPage" style="display: none;">
+        <h2 id="quizTitle"></h2>
+        <div id="questions"></div>
+        <button onclick="submitAnswers()">Submit Answers</button>
+    </div>
+
+    <div id="resultPage" style="display: none;">
+        <h2>Quiz Result</h2>
+        <p>Your score: <span id="score"></span></p>
+        <p>Correct Answers:</p>
+        <ul id="correctAnswers"></ul>
+    </div>
+
+    <script>
+        let quizData = {};
+
+        function createQuiz() {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('createQuizPage').style.display = 'block';
+        }
+
+        function addQuestion() {
+            const questionNum = document.querySelectorAll('.question').length + 1;
+            const questionDiv = document.createElement('div');
+            questionDiv.id = `question${questionNum}`;
+            questionDiv.innerHTML = `
+                <input type="text" class="question" placeholder="Enter question"><br>
+                <input type="text" class="option" placeholder="Option 1"><br>
+                <input type="text" class="option" placeholder="Option 2"><br>
+                <input type="text" class="option" placeholder="Option 3"><br>
+                <input type="text" class="option" placeholder="Option 4"><br>
+                Correct Answer: <select class="correctAnswer">
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                    <option value="4">Option 4</option>
+                </select><br><br>
+            `;
+            document.getElementById('questions').appendChild(questionDiv);
+        }
+
+        function submitQuiz() {
+            const quizTitle = document.getElementById('quizTitle').value;
+            const questions = [];
+            document.querySelectorAll('.question').forEach((question, index) => {
+                const options = [];
+                question.parentElement.querySelectorAll('.option').forEach(option => {
+                    options.push(option.value);
+                });
+                const correctAnswer = question.parentElement.querySelector('.correctAnswer').value;
+                questions.push({
+                    question_text: question.value,
+                    options,
+                    correct_answer: options[correctAnswer - 1]
+                });
+            });
+            quizData = {
+                title: quizTitle,
+                questions
+            };
+            console.log(quizData); // Send this data to backend for quiz creation
+            alert('Quiz created successfully!');
+            window.location.reload();
+        }
+
+        function takeQuiz() {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('takeQuizPage').style.display = 'block';
+        }
+
+        function startQuiz() {
+            const quizLink = document.getElementById('quizLink').value;
+            console.log('Fetching quiz data for:', quizLink); // Fetch quiz data from backend using the link
+            // For demo, using sample quiz data
+            quizData = {
+                title: 'Sample Quiz',
+                questions: [
+                    {
+                        question_text: 'What is 2 + 2?',
+                        options: ['3', '4', '5', '6'],
+                        correct_answer: '4'
+                    },
+                    {
+                        question_text: 'What is the capital of France?',
+                        options: ['London', 'Berlin', 'Paris', 'Rome'],
+                        correct_answer: 'Paris'
+                    }
+                ]
+            };
+            displayQuiz();
+        }
+
+        function displayQuiz() {
+            document.getElementById('takeQuizPage').style.display = 'none';
+            document.getElementById('quizPage').style.display = 'block';
+            document.getElementById('quizTitle').textContent = quizData.title;
+            const questionsDiv = document.getElementById('questions');
+            questionsDiv.innerHTML = '';
+            quizData.questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.innerHTML = `
+                    <p>${index + 1}. ${question.question_text}</p>
+                    ${question.options.map((option, i) => `
+                        <input type="radio" name="question${index}" value="${option}"> ${option}<br>
+                    `).join('')}
+                    <br>
+                `;
+                questionsDiv.appendChild(questionDiv);
+            });
+        }
+
+        function submitAnswers() {
+            const answers = [];
+            quizData.questions.forEach((question, index) => {
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                if (selectedOption) {
+                    answers.push({
+                        question_id: question.question_text,
+                        selected_option: selectedOption.value
+                    });
+                }
+            });
+            console.log('Submitting answers:', answers); // Send this data to backend for evaluation
+            // For demo, just showing the result page with a hardcoded score and correct answers
+            const score = 1; 
+            const correctAnswers = ['4', 'Paris']; 
+            showResult(score, correctAnswers);
+        }
+
+        function showResult(score, correctAnswers) {
+            document.getElementById('quizPage').style.display = 'none';
+            document.getElementById('resultPage').style.display = 'block';
+            document.getElementById('score').textContent = score;
+            const correctAnswersList = document.getElementById('correctAnswers');
+            correctAnswersList.innerHTML = '';
+            correctAnswers.forEach(answer => {
+                const li = document.createElement('li');
+                li.textContent = answer;
+                correctAnswersList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
